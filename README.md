@@ -1,7 +1,7 @@
 # Trabalho prático 2
 
-* Nome do Aluno: ________
-* Número de Matrícula: ________
+* Nome do Aluno: Aline Rose Alencar Santos
+* Número de Matrícula: 2019214900
 * Disciplina: Aprendizado de Máquina
 * Semestre: 2023/1
 * Data: 19/04/2023
