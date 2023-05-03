@@ -9,6 +9,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.cluster import KMeans
 from sklearn.metrics import  classification_report, accuracy_score, confusion_matrix
 from sklearn.naive_bayes import GaussianNB
+from sklearn.decomposition import PCA
+
 
 # leitura dos dados
 dataset = pd.read_excel('dataset.xlsx')
@@ -47,8 +49,11 @@ plt.title('Correlação das colunas com mais de 90% dos dados faltantes com o re
 plt.legend(['Correlação'], loc='best', fontsize=10)
 
 # Exibir o gráfico
-plt.show()
+caminho_completo_correlacao_90 = 'output/correlacao_90.png'
 
+plt.savefig(caminho_completo_correlacao_90)
+
+plt.show()
 
 percentual_dfaltantes = dataset.isna().sum() / len(dataset) * 100
 
@@ -80,12 +85,14 @@ plt.title('Correlação das colunas com mais de 90% dos dados faltantes com o re
 # Adicionar legenda
 plt.legend(['Correlação'], loc='best', fontsize=10)
 
+cmp_correlacao_dtfaltantes = 'output/correlacao_dtfaltantes.png'
+
+plt.savefig(cmp_correlacao_dtfaltantes)
+
 # Exibir o gráfico
 plt.show()
 
 dataset = dataset.drop(colunas_dfaltantes, axis=1)
-
-
 
 grupo1_correlacao = dataset.corrwith(selecionar_col_resultado, numeric_only=True)
 
@@ -100,8 +107,6 @@ y = dataset[index_correlacoes[0]]
 
 # X = dataset[lista_im]
 # y = dataset['SARS-Cov-2 exam result']   
-
-
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.23, random_state=101)
 
 print(f'x train {X_train} e y train {y_train}' )
@@ -112,7 +117,7 @@ dt_predictions = dt.predict(X_test)
 dt_accuracy = accuracy_score(y_test, dt_predictions)
 
 # Treinamento e teste dos dados com k-NN
-knn = KNeighborsClassifier(n_neighbors=20)
+knn = KNeighborsClassifier(n_neighbors=50)
 knn.fit(X_train, y_train)
 knn_predictions = knn.predict(X_test)
 knn_accuracy = accuracy_score(y_test, knn_predictions)
@@ -137,6 +142,10 @@ plt.xlabel('Algoritmo')
 plt.ylabel('Acurácia')
 plt.title('Acurácia dos Algoritmos')
 plt.ylim([0, 1])  # Definindo o limite do eixo y entre 0 e 1
+
+cmp_acuracia_alg = 'output/acuracia_alg.png'
+plt.savefig(cmp_acuracia_alg)
+
 plt.show()
 
 
@@ -159,6 +168,88 @@ print(f'tn {tn}, fp {fp}, fn {fn}, tp {tp}', '\n\n',
       'Classification Report:\n', (classification_report(y_test, prds)))
 
 
+X = dataset[index_correlacoes[1:]]
+y = dataset[index_correlacoes[0]]
+
+pca = PCA(n_components=2)
+
+X_pca = pca.fit_transform(X)
+print('pca', X_pca)
+
+dt = DecisionTreeClassifier()
+dt.fit(X_pca, y)
+
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y, cmap=plt.cm.Paired)
+
+x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
+y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
+
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
+Z = dt.predict(np.c_[xx.ravel(), yy.ravel()])
+
+Z = Z.reshape(xx.shape)
+plt.contourf(xx, yy, Z, alpha=0.4, cmap=plt.cm.Paired)
+
+plt.xlabel('Componente Principal 1')
+plt.ylabel('Componente Principal 2')
+plt.title('Fronteiras de Decisão (Árvore de Decisão)')
 
 
+plt.show()
 
+
+pca = PCA(n_components=2)
+
+X_pca = pca.fit_transform(X)
+print('pca', X_pca)
+
+knn = KNeighborsClassifier(n_neighbors=20)
+knn.fit(X_pca, y)
+
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y, cmap=plt.cm.Paired)
+
+x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
+y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
+
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
+Z = knn.predict(np.c_[xx.ravel(), yy.ravel()])
+
+Z = Z.reshape(xx.shape)
+plt.contourf(xx, yy, Z, alpha=0.4, cmap=plt.cm.Paired)
+
+plt.xlabel('Componente Principal 1')
+plt.ylabel('Componente Principal 2')
+plt.title('KNN')
+cmp_knn_fronteira = 'output/knn_fronteira.png'
+plt.savefig(cmp_knn_fronteira)
+
+
+plt.show()
+
+pca = PCA(n_components=2)
+
+X_pca = pca.fit_transform(X)
+print('pca', X_pca)
+
+nb = GaussianNB()
+nb.fit(X_pca, y)
+
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=y, cmap=plt.cm.Paired)
+
+x_min, x_max = X_pca[:, 0].min() - 1, X_pca[:, 0].max() + 1
+y_min, y_max = X_pca[:, 1].min() - 1, X_pca[:, 1].max() + 1
+
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
+Z = nb.predict(np.c_[xx.ravel(), yy.ravel()])
+
+Z = Z.reshape(xx.shape)
+plt.contourf(xx, yy, Z, alpha=0.4, cmap=plt.cm.Paired)
+
+plt.xlabel('Componente Principal 1')
+plt.ylabel('Componente Principal 2')
+plt.title('Naive Bayes')
+
+cmp_nb_fronteira = 'output/nb_fronteira.png'
+plt.savefig(cmp_nb_fronteira)
+
+plt.show()

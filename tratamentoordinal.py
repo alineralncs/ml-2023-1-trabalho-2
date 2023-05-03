@@ -57,8 +57,7 @@ def detect_and_handle_outliers(dataset):
             upper_bound = Q3 + 1.5 * IQR
             # Identificação dos outliers
             outliers = dataset[(dataset[coluna] < lower_bound) | (dataset[coluna] > upper_bound)]
-            
-           
+        
             # Tratamento dos outliers
             if not outliers.empty:
                 # Substituir os outliers pelo valor mediano da coluna
