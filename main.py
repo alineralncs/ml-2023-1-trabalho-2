@@ -94,12 +94,12 @@ print(f'colunas com maiores correlacao em valor absoluto{grupo1_correlacao.abs()
 
 index_correlacoes = grupo1_correlacao.abs().sort_values(ascending=False).head(10).index
 
-# x = dataset[index_correlacoes[1:]]
-# y = dataset[index_correlacoes[0]]
-lista_im = index_correlacoes.tolist()
+X = dataset[index_correlacoes[1:]]
+y = dataset[index_correlacoes[0]]
+# lista_im = index_correlacoes.tolist()
 
-X = dataset[lista_im]
-y = dataset['SARS-Cov-2 exam result']   
+# X = dataset[lista_im]
+# y = dataset['SARS-Cov-2 exam result']   
 
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.23, random_state=101)

@@ -107,7 +107,6 @@ def maiores_correlacaoes(correlacao):
     return index_correlacoes
 
 dataset = transf_labelencoder(dataset)
-dataset = detect_and_handle_outliers(dataset)
 dataset = preencher_mediana(dataset)
 
 datase_cols_faltantes = colunas_faltantes(dataset)
@@ -132,7 +131,7 @@ y = dataset['SARS-Cov-2 exam result']
 
 print(y)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.23,  stratify=y, random_state=101)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.23,  stratify=y, random_state=81)
 
 print("Distribuição da coluna alvo no conjunto de treinamento:")
 print(y_train.value_counts())
@@ -144,7 +143,7 @@ print("Valores únicos da coluna alvo após a codificação:")
 print(y.unique())
 # knn = train_test_algortimos(KNeighborsClassifier(n_neighbors=5), nome, X_train, X_test, y_train, y_test )
 
-knn = KNeighborsClassifier(n_neighbors=20)
+knn = KNeighborsClassifier(n_neighbors=50)
 knn.fit(X_train, y_train)
 knn_predictions = knn.predict(X_test)
 knn_accuracy = accuracy_score(y_test, knn_predictions)
@@ -192,7 +191,6 @@ tn, fp, fn, tp = confusion_matrix(y_test, prds).ravel()
 print(f'tn {tn}, fp {fp}, fn {fn}, tp {tp}', '\n\n',
       'Accuracy:', (accuracy_score(y_test, prds)), '\n\n',
       'Classification Report:\n', (classification_report(y_test, prds)))
-
 
 
 
