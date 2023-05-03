@@ -3,10 +3,14 @@ from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.cluster import KMeans
+from sklearn.metrics import  classification_report, accuracy_score, confusion_matrix
 
 # leitura dos dados
 dataset = pd.read_excel('dataset.xlsx')
-
 
 colunas_irrelevantes = ['Patient ID', 'Patient addmited to regular ward (1=yes, 0=no)', 'Patient addmited to semi-intensive unit (1=yes, 0=no)', 'Patient addmited to intensive care unit (1=yes, 0=no)']
 dataset = dataset.drop(columns=colunas_irrelevantes)
@@ -24,7 +28,24 @@ for coluna in dataset.columns:
         # tipo_depois_encoder =  dataset[coluna].dtypes
         print(f'\n Coluna {coluna}: valores antes  {valores_antes} e valores depois {valores_depois} \n tipo antes {tipo_antes_encoder} e tipo depois {dataset[coluna].dtypes}')
 
-# dataset = dataset.fillna(dataset.mean())
+dataset = dataset.fillna(dataset.mean())
+resultado_exame = "SARS-Cov-2 exam result"
+selecionar_col_resultado = dataset[resultado_exame]
+primeira_correlacao = dataset.corrwith(selecionar_col_resultado, numeric_only=True)
+
+primeira_correlacao.plot(kind='bar', figsize=(10, 6))
+
+# Configuração dos rótulos dos eixos x e y e título do gráfico
+plt.xlabel('Variáveis', fontsize=12)
+plt.ylabel('Correlação', fontsize=12)
+plt.title('Correlação das colunas com mais de 90% dos dados faltantes com o resultado do exame', fontsize=14)
+
+# Adicionar legenda
+plt.legend(['Correlação'], loc='best', fontsize=10)
+
+# Exibir o gráfico
+plt.show()
+
 
 percentual_dfaltantes = dataset.isna().sum() / len(dataset) * 100
 
@@ -62,17 +83,69 @@ plt.show()
 dataset = dataset.drop(colunas_dfaltantes, axis=1)
 
 
-print(dataset.columns)
-
-colunas = dataset.columns
-
-grupo1 = dataset.iloc[:, :len(colunas)//2]
-grupo2 = dataset.iloc[:, len(colunas)//2:]
-
 
 grupo1_correlacao = dataset.corrwith(selecionar_col_resultado, numeric_only=True)
 
 
-print(f'colunas com maiores correlacao em valor absoluto{grupo1_correlacao.abs().sort_values(ascending=False).head(20).index}') 
+print(f'colunas com maiores correlacao em valor absoluto{grupo1_correlacao.abs().sort_values(ascending=False).head(10).index}') 
+
+index_correlacoes = grupo1_correlacao.abs().sort_values(ascending=False).head(10).index
+
+x = dataset[index_correlacoes[1:]]
+y = dataset[index_correlacoes[0]]
+
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size = 0.33, random_state=101)
+
+print(f'x train {X_train} e y train {y_train}' )
+# Treinamento e teste dos dados com Árvore de Decisão
+dt = DecisionTreeClassifier()
+dt.fit(X_train, y_train)
+dt_predictions = dt.predict(X_test)
+dt_accuracy = accuracy_score(y_test, dt_predictions)
+
+# Treinamento e teste dos dados com k-NN
+knn = KNeighborsClassifier()
+knn.fit(X_train, y_train)
+knn_predictions = knn.predict(X_test)
+knn_accuracy = accuracy_score(y_test, knn_predictions)
+
+# Treinamento e teste dos dados com k-Means
+kmeans = KMeans(n_clusters=2)
+kmeans.fit(X_train)
+kmeans_predictions = kmeans.predict(X_test)
+kmeans_accuracy = accuracy_score(y_test, kmeans_predictions)
+
+# Imprimindo a acurácia de cada algoritmo
+print("Acurácia da Árvore de Decisão:", dt_accuracy)
+print("Acurácia do k-NN:", knn_accuracy)
+print("Acurácia do k-Means:", kmeans_accuracy)
+
+algorithms = ['Decision Tree', 'k-NN', 'k-Means']
+accuracies = [dt_accuracy, knn_accuracy, kmeans_accuracy]
+
+# Plotando o gráfico de barras com as acurácias
+plt.bar(algorithms, accuracies)
+plt.xlabel('Algoritmo')
+plt.ylabel('Acurácia')
+plt.title('Acurácia dos Algoritmos')
+plt.ylim([0, 1])  # Definindo o limite do eixo y entre 0 e 1
+plt.show()
 
 
+prds = kmeans.predict(X_test)
+tn, fp, fn, tp = confusion_matrix(y_test, prds).ravel()
+print(f'tn {tn}, fp {fp}, fn {fn}, tp {tp}', '\n\n',
+      'Accuracy:', (accuracy_score(y_test, prds)), '\n\n',
+      'Classification Report:\n', (classification_report(y_test, prds)))
+
+prds = knn.predict(X_test)
+tn, fp, fn, tp = confusion_matrix(y_test, prds).ravel()
+print(f'tn {tn}, fp {fp}, fn {fn}, tp {tp}', '\n\n',
+      'Accuracy:', (accuracy_score(y_test, prds)), '\n\n',
+      'Classification Report:\n', (classification_report(y_test, prds)))
+
+prds = kmeans.predict(X_test)
+tn, fp, fn, tp = confusion_matrix(y_test, prds).ravel()
+print(f'tn {tn}, fp {fp}, fn {fn}, tp {tp}', '\n\n',
+      'Accuracy:', (accuracy_score(y_test, prds)), '\n\n',
+      'Classification Report:\n', (classification_report(y_test, prds)))
